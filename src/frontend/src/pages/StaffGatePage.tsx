@@ -13,16 +13,18 @@ export default function StaffGatePage() {
   const { 
     isAuthenticated, 
     isStaff, 
-    isLoading, 
+    isStaffLoading,
     hasStaffError, 
     staffError, 
     retryStaffCheck,
     staffCheckComplete,
-    staffAccount 
+    staffAccount,
+    principalString,
+    staffAccountPresent,
   } = useAuth();
 
-  // Show loading while checking authentication and authorization
-  if (isLoading) {
+  // Show loading while checking authentication and authorization (staff-specific)
+  if (isStaffLoading) {
     return (
       <div className="container mx-auto px-4 py-16 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -63,6 +65,8 @@ export default function StaffGatePage() {
         role="staff"
         error={staffError}
         onRetry={() => retryStaffCheck()}
+        principalString={principalString}
+        staffAccountPresent={staffAccountPresent}
       />
     );
   }
@@ -103,5 +107,12 @@ export default function StaffGatePage() {
     return <StaffDashboardPage />;
   }
 
-  return <AccessDeniedScreen role="staff" />;
+  return (
+    <AccessDeniedScreen 
+      role="staff" 
+      principalString={principalString}
+      staffAccountPresent={staffAccountPresent}
+      onRetry={() => retryStaffCheck()}
+    />
+  );
 }

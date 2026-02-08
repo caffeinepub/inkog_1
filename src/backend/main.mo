@@ -137,6 +137,44 @@ actor {
     stableUserRoles := [];
   };
 
+  // Admin diagnostics endpoint for debugging access control
+  public query ({ caller }) func getAdminDiagnostics() : async {
+    callerPrincipal : Text;
+    isAdmin : Bool;
+    userRole : Text;
+    hasUserPermission : Bool;
+    hasAdminPermission : Bool;
+    totalAdmins : Nat;
+    totalUsers : Nat;
+  } {
+    let role = AccessControl.getUserRole(accessControlState, caller);
+    let roleText = switch (role) {
+      case (#admin) { "admin" };
+      case (#user) { "user" };
+      case (#guest) { "guest" };
+    };
+
+    var adminCount = 0;
+    var userCount = 0;
+    for ((principal, userRole) in accessControlState.userRoles.entries()) {
+      switch (userRole) {
+        case (#admin) { adminCount += 1 };
+        case (#user) { userCount += 1 };
+        case (#guest) { };
+      };
+    };
+
+    return {
+      callerPrincipal = caller.toText();
+      isAdmin = AccessControl.isAdmin(accessControlState, caller);
+      userRole = roleText;
+      hasUserPermission = AccessControl.hasPermission(accessControlState, caller, #user);
+      hasAdminPermission = AccessControl.hasPermission(accessControlState, caller, #admin);
+      totalAdmins = adminCount;
+      totalUsers = userCount;
+    };
+  };
+
   // User Profile Management (required by frontend)
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not AccessControl.hasPermission(accessControlState, caller, #user)) {

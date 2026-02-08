@@ -1,58 +1,27 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T15:18:59.189Z",
+  "generatedAt": "2026-02-08T16:02:56.835Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 6,
-    "implemented": 0,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
-        "id": "REQ-33",
-        "summary": "Unblock backend compilation by creating the missing Motoko authorization modules referenced by `backend/main.mo` so these imports resolve exactly: `import AccessControl \"authorization/access-control\";` and `import MixinAuthorization \"authorization/MixinAuthorization\";`.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-34",
-        "summary": "Implement the AccessControl API expected by `backend/main.mo` in `backend/authorization/access-control.mo`, including role/permission types and these functions: `initState()`, `isAdmin(state, principal)`, `hasPermission(state, principal, permissionVariant)`, and `assignRole(state, caller, targetPrincipal, roleVariant)`, with roles/permissions supporting at least `#admin` and `#user` as used by `backend/main.mo`.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-35",
-        "summary": "Implement `backend/authorization/MixinAuthorization.mo` as an includable mixin compatible with `include MixinAuthorization(accessControlState);` in `backend/main.mo`, and ensure it exposes canister methods required by the existing frontend auth flow: `public query ({ caller }) func isCallerAdmin() : async Bool` and `public shared ({ caller }) func _initializeAccessControlWithSecret(secret : Text) : async ()`.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-36",
-        "summary": "Fix the 'Admin page shows immediate Access Denied' issue by implementing correct admin bootstrapping behavior in the backend authorization layer: when there are zero admins configured, the first authenticated Internet Identity principal that triggers authorization initialization/check must be automatically granted admin privileges (and any required base role such as `#user`), and subsequent non-admin callers must remain denied unless explicitly granted admin rights.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-37",
-        "summary": "Ensure authorization state persists across canister upgrades so a previously bootstrapped admin does not lose access after redeploying/upgrading, using the existing stable storage pattern in `backend/main.mo` (`stableUserRoles` and `preupgrade`/`postupgrade`). Add or adjust `backend/migration.mo` only if required by the existing state upgrade path.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-38",
-        "summary": "Validate end-to-end admin gating behavior in the frontend without modifying immutable hook files: after the backend fix, an authenticated bootstrapped admin can access `AdminDashboardPage`, while non-admin authenticated users remain blocked by `AccessDeniedScreen` with the existing English text 'Access Denied'.",
-        "status": "missing",
+        "id": "REQ-1",
+        "summary": "Add a password gate on the /admin route that requires the user to enter the exact password \"inmz3-jnxbo-huill-m3p3q-la3cc-j7mjp-uahne-hudzt-f6lnd-vctox-sqe\" every time they attempt to access the Admin page, before showing any admin dashboard or admin access-denied content.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/README.md"
+          "frontend/src/components/admin/AdminRoutePasswordGate.tsx",
+          "frontend/src/pages/AdminGatePage.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/admin/AdminRoutePasswordGate.tsx",
+          "frontend/src/pages/AdminGatePage.tsx"
+        ]
       }
     ]
   },
@@ -61,9 +30,8 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/hooks/useAuth.ts",
+    "frontend/src/components/admin/AdminRoutePasswordGate.tsx",
     "frontend/src/pages/AdminGatePage.tsx",
-    "frontend/src/pages/StaffGatePage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

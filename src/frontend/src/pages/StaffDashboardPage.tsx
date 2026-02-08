@@ -11,6 +11,7 @@ import { useGetReportsBySchool } from '../hooks/useStaffReports';
 import { ReportCategory, ReportStatus, Report } from '../backend';
 import ReportStatusActions from '../components/reports/ReportStatusActions';
 import LoginButton from '../components/auth/LoginButton';
+import ShowPrincipalButton from '../components/auth/ShowPrincipalButton';
 import { Loader2, Filter, X } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -72,14 +73,17 @@ export default function StaffDashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="text-3xl font-bold">Staff Dashboard</h2>
           <p className="text-muted-foreground mt-1">
             {staffAccount?.name} • {staffAccount?.email}
           </p>
         </div>
-        <LoginButton />
+        <div className="flex flex-wrap items-center gap-2">
+          <ShowPrincipalButton />
+          <LoginButton />
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3 mb-8">
@@ -115,32 +119,29 @@ export default function StaffDashboardPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <CardTitle>Reports</CardTitle>
-              <CardDescription>View and manage submitted reports</CardDescription>
+              <CardDescription>View and manage reports for your school</CardDescription>
             </div>
             {hasActiveFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <Button variant="outline" size="sm" onClick={clearFilters}>
                 <X className="h-4 w-4 mr-2" />
                 Clear Filters
               </Button>
             )}
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3 mb-6">
+        <CardContent className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
-              <Label htmlFor="category-filter">
-                <Filter className="h-4 w-4 inline mr-2" />
-                Category
-              </Label>
+              <Label htmlFor="category">Category</Label>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger id="category-filter">
-                  <SelectValue />
+                <SelectTrigger id="category">
+                  <SelectValue placeholder="All categories" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="all">All categories</SelectItem>
                   {Object.entries(categoryLabels).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
                       {label}
@@ -150,18 +151,18 @@ export default function StaffDashboardPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="start-date">Start Date</Label>
+              <Label htmlFor="startDate">Start Date</Label>
               <Input
-                id="start-date"
+                id="startDate"
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end-date">End Date</Label>
+              <Label htmlFor="endDate">End Date</Label>
               <Input
-                id="end-date"
+                id="endDate"
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
@@ -189,15 +190,13 @@ export default function StaffDashboardPage() {
                   {filteredReports.map((report: Report) => (
                     <TableRow key={report.id.toString()}>
                       <TableCell className="whitespace-nowrap">
-                        {format(new Date(Number(report.timestamp) / 1000000), 'MMM d, yyyy HH:mm')}
+                        {format(new Date(Number(report.timestamp) / 1000000), 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {categoryLabels[report.category]}
-                        </Badge>
+                        <Badge variant="outline">{categoryLabels[report.category]}</Badge>
                       </TableCell>
                       <TableCell className="max-w-md">
-                        <p className="line-clamp-2 text-sm">{report.text}</p>
+                        <div className="line-clamp-2">{report.text}</div>
                       </TableCell>
                       <TableCell>
                         <Badge className={statusColors[report.status]}>

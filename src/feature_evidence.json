@@ -1,4 +1,25 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-add-a-password-gate-on-the-admin-route-that-requires-the-user-to-enter-the-exact-password-inmz3-jnxbo-huill-m3p3q-la3cc-j7mjp-uahne-hudzt-f6lnd-vctox-sqe-every-time-they-attempt-to-access-the-admin-page-before-showing-any-admin-dashboard-or-admin-access-denied-content",
+      "featureTitle": "Add a password gate on the /admin route that requires the user to enter the exact password \"inmz3-jnxbo-huill-m3p3q-la3cc-j7mjp-uahne-hudzt-f6lnd-vctox-sqe\" every time they attempt to access the Admin page, before showing any admin dashboard or admin access-denied content.",
+      "files": [
+        "frontend/src/components/admin/AdminRoutePasswordGate.tsx",
+        "frontend/src/pages/AdminGatePage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

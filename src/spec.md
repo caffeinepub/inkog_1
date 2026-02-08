@@ -1,14 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix immediate “Access Denied” for admins by adding the missing backend authorization modules, implementing admin bootstrapping, and ensuring authorization persists across canister upgrades.
+**Goal:** Require a password prompt on every visit to the `/admin` route before showing any admin-related UI.
 
 **Planned changes:**
-- Add the missing Motoko modules at `backend/authorization/access-control.mo` and `backend/authorization/MixinAuthorization.mo` so `backend/main.mo` imports resolve and the backend compiles.
-- Implement the `AccessControl` API used by `backend/main.mo` (roles/permissions and `initState`, `isAdmin`, `hasPermission`, `assignRole`) with support for at least `#admin` and `#user`, returning English “Unauthorized” traps for admin-only calls by non-admins.
-- Implement the `MixinAuthorization` mixin to expose `isCallerAdmin()` and `_initializeAccessControlWithSecret(secret : Text)` as required by the existing frontend auth flow.
-- Add backend admin bootstrapping: if no admins exist yet, the first authenticated Internet Identity principal to initialize/check authorization becomes admin automatically; later callers remain non-admin unless granted.
-- Persist authorization state across upgrades using the existing stable storage pattern in `backend/main.mo`, adjusting/adding `backend/migration.mo` only if required to preserve existing stable data.
-- Validate end-to-end admin gating behavior in the frontend without modifying immutable hook/UI files: bootstrapped admin can access the Admin dashboard; non-admins continue to see the existing “Access Denied” UI.
+- Add a password entry gate that always appears first when navigating to `/admin`, regardless of current authentication/admin status.
+- Validate the entered password against the exact required string; show an English “incorrect password” error on failure and keep the user on the password screen.
+- On correct password entry, continue into the existing admin authentication/authorization flow (login if needed, dashboard/denied states as currently implemented).
+- Ensure the password is not persisted (no sessionStorage/localStorage/URL params); refreshing or revisiting `/admin` requires re-entry.
+- Remove or repurpose the existing “Emergency Access (Optional)” token-saving UX so admin access is controlled by the new password prompt (not by saving a token in sessionStorage).
 
-**User-visible outcome:** On a fresh deploy, the first authenticated user becomes the admin and can access the Admin dashboard; other authenticated users remain blocked by the existing “Access Denied” screen unless explicitly granted admin rights, and admin access persists after upgrades.
+**User-visible outcome:** Visiting `/admin` always prompts for a password first; only after entering the correct password does the user proceed to the normal admin login/dashboard/denied flow, and the password must be re-entered on refresh or return visits.

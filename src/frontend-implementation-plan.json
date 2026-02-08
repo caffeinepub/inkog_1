@@ -1,21 +1,28 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Frontend validation for admin gating after backend authorization fix",
+  "title": "Password prompt gate for /admin route (non-persistent)",
   "requirements": [
     {
-      "id": "REQ-38",
-      "summary": "Validate admin route gating in the UI using existing hooks so bootstrapped admins reach AdminDashboardPage while non-admins see the existing AccessDeniedScreen text.",
+      "id": "REQ-1",
+      "summary": "Require a non-persistent password prompt on every /admin visit before continuing into the existing admin authentication/authorization flow, and remove the existing session token emergency access UX.",
       "acceptanceCriteria": [
-        "When logged in as the bootstrapped admin, navigating to the Admin route renders the admin dashboard (not the access denied screen).",
-        "When logged in as a non-admin, navigating to the Admin route renders the existing access denied screen.",
-        "No edits are made to files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything under `frontend/src/components/ui`."
+        "Navigating to /admin always shows a password entry screen first (even if the user is already authenticated with Internet Identity and/or already an admin).",
+        "Entering an incorrect password keeps the user on the password screen and shows an English error message indicating the password is incorrect.",
+        "Entering the correct password allows the user to proceed to the existing admin authentication/authorization flow (Login UI if not authenticated, admin dashboard if authorized, error/denied screens as appropriate).",
+        "The password is not persisted in sessionStorage/localStorage/URL parameters; refreshing the page or revisiting /admin requires the password again.",
+        "The existing \"Emergency Access (Optional)\" token-saving UX in AdminGatePage is removed or repurposed so that admin access is controlled by the new password prompt (not by storing a token in sessionStorage)."
       ],
       "file_operations": [
         {
-          "path": "frontend/README.md",
+          "path": "frontend/src/components/admin/AdminRoutePasswordGate.tsx",
+          "operation": "create",
+          "description": "Create a small password-gate UI used exclusively for the /admin route: renders a password input + submit button, shows an English \"incorrect password\" error state on mismatch, and calls an onSuccess callback on an exact match to \"inmz3-jnxbo-huill-m3p3q-la3cc-j7mjp-uahne-hudzt-f6lnd-vctox-sqe\". Ensure the entered value is kept only in component state and never persisted. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/AdminGatePage.tsx",
           "operation": "modify",
-          "description": "Add a concise manual end-to-end QA checklist for verifying Admin route behavior after the backend authorization fix (bootstrapped admin vs non-admin) and explicitly note the immutable frontend paths that must not be edited when validating (hooks + main + components/ui)."
+          "description": "Wrap the existing admin auth/authorization UI behind the new password gate so that the password screen renders first on every visit to /admin (before login, loading spinners, admin dashboard, access-denied, or error content). After a correct password entry, proceed into the existing flow that relies on the current authorization system (useAuth + existing admin checks). Remove the \"Emergency Access (Optional)\" token-saving UI and all sessionStorage token persistence behavior (including the storeSessionParameter import/usage) so admin access is controlled only by the password prompt plus the existing principal-based authorization. Verify the component's usage instructions before implementing."
         }
       ]
     }

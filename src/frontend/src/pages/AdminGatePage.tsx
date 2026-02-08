@@ -1,27 +1,52 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import LoginButton from '../components/auth/LoginButton';
 import AdminDashboardPage from './AdminDashboardPage';
 import AccessDeniedScreen from '../components/AccessDeniedScreen';
 import AuthGateErrorCard from '../components/auth/AuthGateErrorCard';
+import AdminRoutePasswordGate from '../components/admin/AdminRoutePasswordGate';
 import { useAuth } from '../hooks/useAuth';
+import { useAdminDiagnostics } from '../hooks/useAdminDiagnostics';
 import { Loader2 } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 
 export default function AdminGatePage() {
   const navigate = useNavigate();
+  const [passwordVerified, setPasswordVerified] = useState(false);
+  
   const { 
     isAuthenticated, 
     isAdmin, 
-    isLoading, 
+    isAdminLoading,
     hasAdminError, 
     adminError, 
     retryAdminCheck,
-    adminCheckComplete 
+    adminCheckComplete,
+    principalString,
+    adminCheckResult,
   } = useAuth();
 
-  // Show loading while checking authentication and authorization
-  if (isLoading) {
+  const { 
+    data: diagnostics, 
+    isLoading: diagnosticsLoading,
+    refetch: refetchDiagnostics 
+  } = useAdminDiagnostics();
+
+  const handleRetry = async () => {
+    await retryAdminCheck();
+    await refetchDiagnostics();
+  };
+
+  // First gate: password verification (always required on every visit)
+  if (!passwordVerified) {
+    return <AdminRoutePasswordGate onSuccess={() => setPasswordVerified(true)} />;
+  }
+
+  // After password verification, proceed with existing authentication/authorization flow
+
+  // Show loading while checking authentication and authorization (admin-specific)
+  if (isAdminLoading) {
     return (
       <div className="container mx-auto px-4 py-16 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -61,7 +86,10 @@ export default function AdminGatePage() {
       <AuthGateErrorCard
         role="admin"
         error={adminError}
-        onRetry={() => retryAdminCheck()}
+        onRetry={handleRetry}
+        principalString={principalString}
+        adminCheckResult={adminCheckResult}
+        diagnostics={diagnostics}
       />
     );
   }
@@ -81,5 +109,15 @@ export default function AdminGatePage() {
     return <AdminDashboardPage />;
   }
 
-  return <AccessDeniedScreen role="admin" />;
+  return (
+    <div className="container mx-auto px-4 py-16 max-w-md">
+      <AccessDeniedScreen 
+        role="admin" 
+        principalString={principalString}
+        adminCheckResult={adminCheckResult}
+        diagnostics={diagnostics}
+        onRetry={handleRetry}
+      />
+    </div>
+  );
 }

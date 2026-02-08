@@ -143,6 +143,15 @@ export interface backendInterface {
     createStaffAccount(principal: Principal, schoolId: SchoolId, name: string, email: string): Promise<StaffId>;
     deleteSchool(schoolId: SchoolId): Promise<void>;
     deleteStaffAccount(staffId: StaffId): Promise<void>;
+    getAdminDiagnostics(): Promise<{
+        userRole: string;
+        totalAdmins: bigint;
+        hasAdminPermission: boolean;
+        totalUsers: bigint;
+        callerPrincipal: string;
+        isAdmin: boolean;
+        hasUserPermission: boolean;
+    }>;
     getAllSchools(): Promise<Array<School>>;
     getAllSchoolsStats(): Promise<Array<{
         totalReports: bigint;
@@ -256,6 +265,28 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteStaffAccount(arg0);
+            return result;
+        }
+    }
+    async getAdminDiagnostics(): Promise<{
+        userRole: string;
+        totalAdmins: bigint;
+        hasAdminPermission: boolean;
+        totalUsers: bigint;
+        callerPrincipal: string;
+        isAdmin: boolean;
+        hasUserPermission: boolean;
+    }> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAdminDiagnostics();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAdminDiagnostics();
             return result;
         }
     }

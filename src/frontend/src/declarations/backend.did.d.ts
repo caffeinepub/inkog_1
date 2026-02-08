@@ -57,6 +57,18 @@ export interface _SERVICE {
   >,
   'deleteSchool' : ActorMethod<[SchoolId], undefined>,
   'deleteStaffAccount' : ActorMethod<[StaffId], undefined>,
+  'getAdminDiagnostics' : ActorMethod<
+    [],
+    {
+      'userRole' : string,
+      'totalAdmins' : bigint,
+      'hasAdminPermission' : boolean,
+      'totalUsers' : bigint,
+      'callerPrincipal' : string,
+      'isAdmin' : boolean,
+      'hasUserPermission' : boolean,
+    }
+  >,
   'getAllSchools' : ActorMethod<[], Array<School>>,
   'getAllSchoolsStats' : ActorMethod<
     [],

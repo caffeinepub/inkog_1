@@ -31,16 +31,25 @@ export function useAuth() {
   const isAdmin = isAdminQuery.data === true;
   const isStaff = !!staffAccountQuery.data;
   
-  // Loading is true if actor is fetching OR if queries are pending/loading
-  // But NOT if queries are disabled (not authenticated)
+  // Role-specific loading states
+  const isAdminLoading = actorFetching || (isAuthenticated && isAdminQuery.isLoading);
+  const isStaffLoading = actorFetching || (isAuthenticated && staffAccountQuery.isLoading);
+  
+  // General loading (for backward compatibility, but prefer role-specific)
   const isLoading = actorFetching || 
     (isAuthenticated && (isAdminQuery.isLoading || staffAccountQuery.isLoading));
+
+  // Get principal string for diagnostics
+  const principalString = identity?.getPrincipal().toString() || null;
 
   return {
     isAuthenticated,
     isAdmin,
     isStaff,
     isLoading,
+    // Role-specific loading states
+    isAdminLoading,
+    isStaffLoading,
     staffAccount: staffAccountQuery.data,
     // Expose error states and retry functions
     adminError: isAdminQuery.error,
@@ -52,5 +61,9 @@ export function useAuth() {
     // Expose whether queries have completed
     adminCheckComplete: isAdminQuery.isFetched,
     staffCheckComplete: staffAccountQuery.isFetched,
+    // Diagnostics data
+    principalString,
+    adminCheckResult: isAdminQuery.data,
+    staffAccountPresent: !!staffAccountQuery.data,
   };
 }

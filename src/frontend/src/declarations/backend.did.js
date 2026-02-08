@@ -67,6 +67,21 @@ export const idlService = IDL.Service({
     ),
   'deleteSchool' : IDL.Func([SchoolId], [], []),
   'deleteStaffAccount' : IDL.Func([StaffId], [], []),
+  'getAdminDiagnostics' : IDL.Func(
+      [],
+      [
+        IDL.Record({
+          'userRole' : IDL.Text,
+          'totalAdmins' : IDL.Nat,
+          'hasAdminPermission' : IDL.Bool,
+          'totalUsers' : IDL.Nat,
+          'callerPrincipal' : IDL.Text,
+          'isAdmin' : IDL.Bool,
+          'hasUserPermission' : IDL.Bool,
+        }),
+      ],
+      ['query'],
+    ),
   'getAllSchools' : IDL.Func([], [IDL.Vec(School)], ['query']),
   'getAllSchoolsStats' : IDL.Func(
       [],
@@ -193,6 +208,21 @@ export const idlFactory = ({ IDL }) => {
       ),
     'deleteSchool' : IDL.Func([SchoolId], [], []),
     'deleteStaffAccount' : IDL.Func([StaffId], [], []),
+    'getAdminDiagnostics' : IDL.Func(
+        [],
+        [
+          IDL.Record({
+            'userRole' : IDL.Text,
+            'totalAdmins' : IDL.Nat,
+            'hasAdminPermission' : IDL.Bool,
+            'totalUsers' : IDL.Nat,
+            'callerPrincipal' : IDL.Text,
+            'isAdmin' : IDL.Bool,
+            'hasUserPermission' : IDL.Bool,
+          }),
+        ],
+        ['query'],
+      ),
     'getAllSchools' : IDL.Func([], [IDL.Vec(School)], ['query']),
     'getAllSchoolsStats' : IDL.Func(
         [],

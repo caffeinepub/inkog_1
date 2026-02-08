@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import LoginButton from '../components/auth/LoginButton';
+import ShowPrincipalButton from '../components/auth/ShowPrincipalButton';
 import SchoolFormDialog from '../components/admin/SchoolFormDialog';
 import StaffFormDialog from '../components/admin/StaffFormDialog';
 import { useGetSchools, useDeleteSchool } from '../hooks/useAdmin';
@@ -67,12 +68,15 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 className="text-3xl font-bold">Admin Dashboard</h2>
           <p className="text-muted-foreground mt-1">Platform management and statistics</p>
         </div>
-        <LoginButton />
+        <div className="flex flex-wrap items-center gap-2">
+          <ShowPrincipalButton />
+          <LoginButton />
+        </div>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
