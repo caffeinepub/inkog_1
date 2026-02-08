@@ -1,20 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Document initial admin bootstrapping behavior",
+  "title": "Frontend validation for admin gating after backend authorization fix",
   "requirements": [
     {
-      "id": "REQ-11",
-      "summary": "Update frontend documentation to explain initial admin bootstrapping (first authenticated principal claims admin when no admins exist) and what happens once an admin exists.",
+      "id": "REQ-38",
+      "summary": "Validate admin route gating in the UI using existing hooks so bootstrapped admins reach AdminDashboardPage while non-admins see the existing AccessDeniedScreen text.",
       "acceptanceCriteria": [
-        "frontend/README.md includes a section describing initial admin bootstrapping and the expected first-login flow.",
-        "Documentation clarifies that only the first authenticated principal becomes admin on a fresh canister and that additional admins must be granted through the admin functionality afterward (no implication that every user can become admin)."
+        "When logged in as the bootstrapped admin, navigating to the Admin route renders the admin dashboard (not the access denied screen).",
+        "When logged in as a non-admin, navigating to the Admin route renders the existing access denied screen.",
+        "No edits are made to files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything under `frontend/src/components/ui`."
       ],
       "file_operations": [
         {
           "path": "frontend/README.md",
           "operation": "modify",
-          "description": "Add a new documentation section (e.g., under Local Development/Setup) describing how initial admin access is established with the bootstrapping behavior: on a fresh canister with zero admins, the first Internet Identity principal to access the admin check/admin route becomes admin; once an admin exists, other principals see Access Denied unless explicitly granted admin later via the admin UI. Ensure all added/changed text is in English and does not imply that every user can become admin."
+          "description": "Add a concise manual end-to-end QA checklist for verifying Admin route behavior after the backend authorization fix (bootstrapped admin vs non-admin) and explicitly note the immutable frontend paths that must not be edited when validating (hooks + main + components/ui)."
         }
       ]
     }

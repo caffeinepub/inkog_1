@@ -1,65 +1,140 @@
 {
   "kind": "build_request",
-  "title": "Fix admin access by bootstrapping the first admin principal",
+  "title": "Fix immediate Admin Access Denied by implementing backend authorization + admin bootstrapping",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-10",
-      "text": "Implement admin bootstrapping so that the first authenticated caller can access the Admin page when no admin principal exists yet. Specifically: when the canister has zero admins configured, the first Internet Identity principal that triggers the admin check must be automatically granted admin privileges (and any required base user permission), after which all subsequent non-admin callers must continue to be denied admin access unless explicitly granted admin rights.",
+      "id": "REQ-33",
+      "text": "Unblock backend compilation by creating the missing Motoko authorization modules referenced by `backend/main.mo` so these imports resolve exactly: `import AccessControl \"authorization/access-control\";` and `import MixinAuthorization \"authorization/MixinAuthorization\";`.",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-5",
-          "msg-8"
+          "msg-1"
         ],
         "quotes": [
-          "why is it not giving me access to admin page",
-          "the first caller automatically becomes the admin if no admin exists yet",
-          "yess"
+          "so fix it"
         ]
       },
       "acceptanceCriteria": [
-        "On a fresh deployment with no pre-configured admins, logging in with Internet Identity and navigating to the admin route results in access to the admin dashboard (no Access Denied screen).",
-        "After the first admin is established, a different Internet Identity principal that has not been granted admin privileges is denied access to the admin page (Access Denied screen remains correct).",
-        "The bootstrapping only occurs when there are no admins; it must not reassign/override admin privileges once at least one admin exists.",
-        "The change does not weaken existing backend authorization checks for staff-scoped data access or anonymous student submission."
+        "`dfx build` succeeds without missing-import/module errors related to `authorization/access-control` or `authorization/MixinAuthorization`.",
+        "The project contains `backend/authorization/access-control.mo` and `backend/authorization/MixinAuthorization.mo` at the exact paths expected by the imports in `backend/main.mo`."
       ]
     },
     {
-      "id": "REQ-11",
-      "text": "Update the setup/deployment documentation to explain how the initial admin is established under the new bootstrapping behavior, including clear steps for first-time login to claim admin access and what to do if an admin already exists.",
-      "target": "frontend",
+      "id": "REQ-34",
+      "text": "Implement the AccessControl API expected by `backend/main.mo` in `backend/authorization/access-control.mo`, including role/permission types and these functions: `initState()`, `isAdmin(state, principal)`, `hasPermission(state, principal, permissionVariant)`, and `assignRole(state, caller, targetPrincipal, roleVariant)`, with roles/permissions supporting at least `#admin` and `#user` as used by `backend/main.mo`.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-4",
-          "msg-5",
-          "msg-8"
+          "msg-1"
         ],
         "quotes": [
-          "the first caller automatically becomes the admin if no admin exists yet",
-          "yess"
+          "so fix it"
         ]
       },
       "acceptanceCriteria": [
-        "frontend/README.md includes a section describing initial admin bootstrapping and the expected first-login flow.",
-        "Documentation clarifies that only the first authenticated principal becomes admin on a fresh canister and that additional admins must be granted through the admin functionality afterward (no implication that every user can become admin)."
+        "All references in `backend/main.mo` compile against the AccessControl module (e.g., `AccessControl.UserRole`, `AccessControl.initState`, `AccessControl.isAdmin`, `AccessControl.hasPermission`, `AccessControl.assignRole`).",
+        "Calling admin-only methods (e.g., `createSchool`) traps with an English 'Unauthorized' message when the caller is not an admin.",
+        "`assignRole` can grant `#user` to a target principal when called by an admin (to support existing staff creation flow in `backend/main.mo`)."
+      ]
+    },
+    {
+      "id": "REQ-35",
+      "text": "Implement `backend/authorization/MixinAuthorization.mo` as an includable mixin compatible with `include MixinAuthorization(accessControlState);` in `backend/main.mo`, and ensure it exposes canister methods required by the existing frontend auth flow: `public query ({ caller }) func isCallerAdmin() : async Bool` and `public shared ({ caller }) func _initializeAccessControlWithSecret(secret : Text) : async ()`.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "so fix it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Frontend actor creation does not fail when calling `actor._initializeAccessControlWithSecret(adminToken)` (from `frontend/src/hooks/useActor.ts`).",
+        "Frontend admin check does not fail when calling `actor.isCallerAdmin()` (from `frontend/src/hooks/useAuth.ts`).",
+        "Both methods return/complete successfully for authenticated callers (no traps in the normal path)."
+      ]
+    },
+    {
+      "id": "REQ-36",
+      "text": "Fix the 'Admin page shows immediate Access Denied' issue by implementing correct admin bootstrapping behavior in the backend authorization layer: when there are zero admins configured, the first authenticated Internet Identity principal that triggers authorization initialization/check must be automatically granted admin privileges (and any required base role such as `#user`), and subsequent non-admin callers must remain denied unless explicitly granted admin rights.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "access denied",
+          "so fix it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On a fresh deploy with no admin roles stored, the first authenticated principal that loads the app becomes admin automatically and `isCallerAdmin()` returns `true` for that principal.",
+        "After the first admin is established, a different authenticated principal sees `isCallerAdmin()` return `false` and the Admin page continues to show the existing 'Access Denied' UI.",
+        "Bootstrapping does not require any user-entered information beyond authenticating with Internet Identity (no extra form fields added)."
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "text": "Ensure authorization state persists across canister upgrades so a previously bootstrapped admin does not lose access after redeploying/upgrading, using the existing stable storage pattern in `backend/main.mo` (`stableUserRoles` and `preupgrade`/`postupgrade`). Add or adjust `backend/migration.mo` only if required by the existing state upgrade path.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "so fix it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After bootstrapping an admin and then performing an upgrade redeploy, the same principal still has admin access (`isCallerAdmin()` returns `true`).",
+        "No existing stable data (schools, staff accounts, reports) is lost after upgrade redeploy.",
+        "`backend/migration.mo` is only introduced/changed if it is necessary to preserve/transform existing stable state."
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "text": "Validate end-to-end admin gating behavior in the frontend without modifying immutable hook files: after the backend fix, an authenticated bootstrapped admin can access `AdminDashboardPage`, while non-admin authenticated users remain blocked by `AccessDeniedScreen` with the existing English text 'Access Denied'.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "access denied",
+          "so fix it"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When logged in as the bootstrapped admin, navigating to the Admin route renders the admin dashboard (not the access denied screen).",
+        "When logged in as a non-admin, navigating to the Admin route renders the existing access denied screen.",
+        "No edits are made to files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or anything under `frontend/src/components/ui`."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo (do not introduce additional backend services).",
-    "Only create backend/migration.mo if required by an actual stable-state change; follow the project migration policy (conditional).",
-    "Do not edit files in frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "All user-facing text added/changed must be in English."
+    "Backend must remain a single Motoko actor with all logic in `backend/main.mo`; authorization functionality must be implemented via the imported modules and mixin included by `backend/main.mo`.",
+    "Do not modify any paths listed in `frontend.immutablePaths` (notably `frontend/src/hooks/useActor.ts`).",
+    "Use English for all user-facing text."
   ],
   "nonGoals": [
-    "Adding new authentication providers or third-party auth (only Internet Identity).",
-    "Changing role definitions or broadening admin permissions beyond the initial-admin bootstrap.",
-    "Implementing any new admin UI features unrelated to establishing initial admin access."
+    "Adding any third-party authentication provider (only Internet Identity is supported).",
+    "Adding external databases or backend services.",
+    "Changing the overall routing/role separation beyond fixing admin authorization and access."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

@@ -1,11 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Ensure the first authenticated Internet Identity principal can access the Admin page on a fresh deployment by automatically bootstrapping the initial admin when no admins exist.
+**Goal:** Fix immediate “Access Denied” for admins by adding the missing backend authorization modules, implementing admin bootstrapping, and ensuring authorization persists across canister upgrades.
 
 **Planned changes:**
-- Add backend logic to detect when zero admin principals are configured and automatically grant admin (and any required base user permission) to the first authenticated caller who triggers an admin check.
-- Preserve existing authorization behavior once an admin exists (non-admins remain denied unless explicitly granted).
-- Update setup/deployment documentation to explain the initial-admin bootstrapping flow and what happens when an admin already exists.
+- Add the missing Motoko modules at `backend/authorization/access-control.mo` and `backend/authorization/MixinAuthorization.mo` so `backend/main.mo` imports resolve and the backend compiles.
+- Implement the `AccessControl` API used by `backend/main.mo` (roles/permissions and `initState`, `isAdmin`, `hasPermission`, `assignRole`) with support for at least `#admin` and `#user`, returning English “Unauthorized” traps for admin-only calls by non-admins.
+- Implement the `MixinAuthorization` mixin to expose `isCallerAdmin()` and `_initializeAccessControlWithSecret(secret : Text)` as required by the existing frontend auth flow.
+- Add backend admin bootstrapping: if no admins exist yet, the first authenticated Internet Identity principal to initialize/check authorization becomes admin automatically; later callers remain non-admin unless granted.
+- Persist authorization state across upgrades using the existing stable storage pattern in `backend/main.mo`, adjusting/adding `backend/migration.mo` only if required to preserve existing stable data.
+- Validate end-to-end admin gating behavior in the frontend without modifying immutable hook/UI files: bootstrapped admin can access the Admin dashboard; non-admins continue to see the existing “Access Denied” UI.
 
-**User-visible outcome:** On a fresh deployment, the first user who logs in with Internet Identity and visits the admin route is granted access to the admin dashboard; after that, other users without admin rights continue to see Access Denied until granted admin.
+**User-visible outcome:** On a fresh deploy, the first authenticated user becomes the admin and can access the Admin dashboard; other authenticated users remain blocked by the existing “Access Denied” screen unless explicitly granted admin rights, and admin access persists after upgrades.

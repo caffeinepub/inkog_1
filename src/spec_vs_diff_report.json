@@ -1,32 +1,91 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-08T14:15:26.375Z",
-  "summary": "REQ-11 documentation update appears to be implemented in frontend/README.md (per diff summary). The backend diff snippet does not show any logic that bootstraps the first admin when zero admins exist, so REQ-10 cannot be confirmed and appears missing based on available evidence. Additionally, an unrelated project_state.json update appears in the diff without being requested.",
+  "generatedAt": "2026-02-08T15:18:59.186Z",
+  "summary": "The diff only contains frontend changes (auth hook and gate pages) plus metadata/docs summaries; none of the required backend Motoko authorization modules/mixin or bootstrapping/persistence work appears in the diff.",
   "missing_requirements": [
     {
-      "id": "REQ-10",
-      "requirement": "Implement admin bootstrapping so that when the canister has zero admins configured, the first authenticated caller who triggers the admin check is automatically granted admin privileges (and any required base user permission); thereafter, non-admins remain denied unless explicitly granted.",
-      "reason": "In the provided backend/main.mo diff excerpt, all admin-gated methods simply check AccessControl.isAdmin(...) and trap on failure; there is no visible conditional path that detects \"zero admins\" and grants admin to the first authenticated principal. No evidence of calling an admin-granting function or mutating accessControlState to add the caller as admin is shown.",
+      "id": "REQ-33",
+      "requirement": "Create missing Motoko authorization modules so imports in backend/main.mo resolve exactly: authorization/access-control and authorization/MixinAuthorization.",
+      "reason": "Diff shows no added files under backend/authorization and no backend changes at all; the required modules are not created.",
       "evidence": [
-        "backend/main.mo"
+        "File diff summary: ADDED FILES: none",
+        "File diff summary: MODIFIED FILES are frontend/src/hooks/useAuth.ts, frontend/src/pages/AdminGatePage.tsx, frontend/src/pages/StaffGatePage.tsx, frontend-file-summaries.txt, project_state.json"
+      ]
+    },
+    {
+      "id": "REQ-34",
+      "requirement": "Implement AccessControl API (types + initState/isAdmin/hasPermission/assignRole) with roles/permissions including at least #admin and #user and ensure unauthorized admin-only calls trap with English 'Unauthorized'.",
+      "reason": "No backend/authorization/access-control.mo is added/modified in the diff, so the AccessControl API and unauthorized trapping behavior are not implemented (or at least not evidenced).",
+      "evidence": [
+        "File diff summary: ADDED FILES: none",
+        "File diff summary: no backend files modified"
+      ]
+    },
+    {
+      "id": "REQ-35",
+      "requirement": "Implement includable MixinAuthorization exposing canister methods isCallerAdmin() and _initializeAccessControlWithSecret(secret: Text).",
+      "reason": "No backend/authorization/MixinAuthorization.mo is added/modified in the diff, so the mixin and required methods are not implemented (or at least not evidenced).",
+      "evidence": [
+        "File diff summary: ADDED FILES: none",
+        "File diff summary: no backend files modified"
+      ]
+    },
+    {
+      "id": "REQ-36",
+      "requirement": "Implement correct admin bootstrapping: when there are zero admins, first authenticated principal is auto-granted admin; subsequent principals remain non-admin unless granted.",
+      "reason": "Bootstrapping behavior must be in backend authorization layer, but the diff contains only frontend changes and no backend authorization/state logic changes.",
+      "evidence": [
+        "File diff summary: no backend files modified",
+        "frontend/src/hooks/useAuth.ts (calls actor.isCallerAdmin() but does not implement bootstrapping)"
+      ]
+    },
+    {
+      "id": "REQ-37",
+      "requirement": "Persist authorization state across canister upgrades using existing stable storage pattern in backend/main.mo (stableUserRoles + preupgrade/postupgrade), adjusting backend/migration.mo only if needed.",
+      "reason": "No backend/main.mo or backend/migration.mo changes are shown, so persistence across upgrades is not implemented (or at least not evidenced).",
+      "evidence": [
+        "File diff summary: no backend files modified"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Updated project state metadata (including a summary that mentions Firebase backend) unrelated to initial-admin bootstrapping or documentation changes.",
-      "reason": "The BuildRequest only asks for backend admin bootstrapping behavior and a README documentation update; modifying project_state.json is not requested.",
+      "description": "Added richer frontend auth hook state (separate admin/staff queries, error exposure, retry functions, completion flags, refined loading behavior).",
+      "reason": "REQ-38 asks to validate admin gating behavior without modifying immutable hook files; it does not explicitly request redesigning useAuth or adding retry/error/completion flags.",
       "evidence": [
+        "frontend/src/hooks/useAuth.ts"
+      ]
+    },
+    {
+      "description": "Implemented new loading/spinner and error-gate UI behavior in AdminGatePage to avoid 'Access Denied' flashing before admin check completes.",
+      "reason": "The BuildRequest focuses on fixing backend authorization + bootstrapping; frontend gate refactoring is not explicitly requested (beyond end-to-end validation).",
+      "evidence": [
+        "frontend/src/pages/AdminGatePage.tsx"
+      ]
+    },
+    {
+      "description": "Implemented staff gate enhancements including staff check completion gating and a new 'Account Disabled' UI path.",
+      "reason": "The BuildRequest targets admin access denied and backend authorization bootstrapping/persistence; staff disabled account UI is not requested.",
+      "evidence": [
+        "frontend/src/pages/StaffGatePage.tsx"
+      ]
+    },
+    {
+      "description": "Modified/added repository metadata/doc summary files (frontend-file-summaries.txt, project_state.json) including statements about an authorization system and troubleshooting.",
+      "reason": "The BuildRequest does not request updating these metadata/state summary files; additionally, claims about backend authorization being implemented are not supported by backend diffs.",
+      "evidence": [
+        "frontend-file-summaries.txt",
         "project_state.json"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.78,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/README.md",
+    "frontend/src/hooks/useAuth.ts",
+    "frontend/src/pages/AdminGatePage.tsx",
+    "frontend/src/pages/StaffGatePage.tsx",
     "project_state.json"
   ]
 }

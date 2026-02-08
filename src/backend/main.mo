@@ -1,13 +1,11 @@
 import Array "mo:core/Array";
-import List "mo:core/List";
-import Text "mo:core/Text";
 import Map "mo:core/Map";
-import Time "mo:core/Time";
-import Iter "mo:core/Iter";
 import Order "mo:core/Order";
+import Text "mo:core/Text";
+import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 import Runtime "mo:core/Runtime";
-
+import Iter "mo:core/Iter";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
@@ -67,12 +65,20 @@ actor {
 
     public func compareByDate(report1 : Report, report2 : Report) : Order.Order {
       if (report1.timestamp < report2.timestamp) { #less } else {
-        if (report1.timestamp > report2.timestamp) { #greater } else {
-          #equal;
-        };
+        if (report1.timestamp > report2.timestamp) { #greater } else { #equal };
       };
     };
   };
+
+  var stableSchools : [(SchoolId, School)] = [];
+  var stableStaffAccounts : [(StaffId, StaffAccount)] = [];
+  var stablePrincipalToStaffId : [(Principal, StaffId)] = [];
+  var stableReports : [(ReportId, Report)] = [];
+  var stableUserProfiles : [(Principal, UserProfile)] = [];
+  var stableUserRoles : [(Principal, AccessControl.UserRole)] = [];
+  var stableNextSchoolId : Nat = 1;
+  var stableNextStaffId : Nat = 1;
+  var stableNextReportId : Nat = 1;
 
   let schools = Map.empty<SchoolId, School>();
   let staffAccounts = Map.empty<StaffId, StaffAccount>();
@@ -80,16 +86,60 @@ actor {
   let reports = Map.empty<ReportId, Report>();
   let userProfiles = Map.empty<Principal, UserProfile>();
 
-  var nextSchoolId = 1;
-  var nextStaffId = 1;
-  var nextReportId = 1;
+  var nextSchoolId = stableNextSchoolId;
+  var nextStaffId = stableNextStaffId;
+  var nextReportId = stableNextReportId;
 
   let accessControlState = AccessControl.initState();
+
+  // Restore state from stable storage
+  for ((k, v) in stableSchools.vals()) {
+    schools.add(k, v);
+  };
+  for ((k, v) in stableStaffAccounts.vals()) {
+    staffAccounts.add(k, v);
+  };
+  for ((k, v) in stablePrincipalToStaffId.vals()) {
+    principalToStaffId.add(k, v);
+  };
+  for ((k, v) in stableReports.vals()) {
+    reports.add(k, v);
+  };
+  for ((k, v) in stableUserProfiles.vals()) {
+    userProfiles.add(k, v);
+  };
+  for ((k, v) in stableUserRoles.vals()) {
+    accessControlState.userRoles.add(k, v);
+  };
+
   include MixinAuthorization(accessControlState);
+
+  // Pre-upgrade hook to save state
+  system func preupgrade() {
+    stableSchools := schools.entries().toArray();
+    stableStaffAccounts := staffAccounts.entries().toArray();
+    stablePrincipalToStaffId := principalToStaffId.entries().toArray();
+    stableReports := reports.entries().toArray();
+    stableUserProfiles := userProfiles.entries().toArray();
+    stableUserRoles := accessControlState.userRoles.entries().toArray();
+    stableNextSchoolId := nextSchoolId;
+    stableNextStaffId := nextStaffId;
+    stableNextReportId := nextReportId;
+  };
+
+  // Post-upgrade hook
+  system func postupgrade() {
+    stableSchools := [];
+    stableStaffAccounts := [];
+    stablePrincipalToStaffId := [];
+    stableReports := [];
+    stableUserProfiles := [];
+    stableUserRoles := [];
+  };
 
   // User Profile Management (required by frontend)
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can access profiles");
     };
     userProfiles.get(caller);
@@ -384,7 +434,7 @@ actor {
     reviewed : Nat;
     resolved : Nat;
   } {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can get school reports stats");
     };
 
@@ -417,7 +467,7 @@ actor {
     schoolName : Text;
     totalReports : Nat;
   }] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can get all schools stats");
     };
 
@@ -462,14 +512,14 @@ actor {
 
   // Staff Information (Admin only)
   public query ({ caller }) func getAllStaff() : async [StaffAccount] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can view all staff");
     };
     staffAccounts.values().toArray();
   };
 
   public query ({ caller }) func getStaffBySchool(schoolId : SchoolId) : async [StaffAccount] {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can view staff");
     };
     staffAccounts.values()
@@ -489,4 +539,3 @@ actor {
     };
   };
 };
-

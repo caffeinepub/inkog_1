@@ -30,7 +30,11 @@ export function useAuth() {
   const isAuthenticated = !!identity;
   const isAdmin = isAdminQuery.data === true;
   const isStaff = !!staffAccountQuery.data;
-  const isLoading = actorFetching || isAdminQuery.isLoading || staffAccountQuery.isLoading;
+  
+  // Loading is true if actor is fetching OR if queries are pending/loading
+  // But NOT if queries are disabled (not authenticated)
+  const isLoading = actorFetching || 
+    (isAuthenticated && (isAdminQuery.isLoading || staffAccountQuery.isLoading));
 
   return {
     isAuthenticated,
@@ -38,5 +42,15 @@ export function useAuth() {
     isStaff,
     isLoading,
     staffAccount: staffAccountQuery.data,
+    // Expose error states and retry functions
+    adminError: isAdminQuery.error,
+    staffError: staffAccountQuery.error,
+    retryAdminCheck: isAdminQuery.refetch,
+    retryStaffCheck: staffAccountQuery.refetch,
+    hasAdminError: !!isAdminQuery.error,
+    hasStaffError: !!staffAccountQuery.error,
+    // Expose whether queries have completed
+    adminCheckComplete: isAdminQuery.isFetched,
+    staffCheckComplete: staffAccountQuery.isFetched,
   };
 }

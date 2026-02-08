@@ -1,42 +1,35 @@
-# Inkog - Anonymous School Reporting Platform
+# Inkog - Anonymous School Reporting System
 
-Inkog is a privacy-focused anonymous reporting platform for schools, built on the Internet Computer blockchain. It provides three distinct interfaces for students, staff, and administrators.
+A privacy-focused platform for students to submit anonymous reports about bullying, harassment, mental health concerns, and suggestions. Built on the Internet Computer with Internet Identity authentication.
 
 ## Features
 
-### Student Interface (No Login Required)
-- Submit completely anonymous reports
-- Select school and optional category (Bullying, Harassment, Mental Health, Suggestion, Other)
-- No personal information collected (no name, email, phone, or IP address)
-- Instant confirmation after submission
+### For Students
+- **Anonymous Reporting**: Submit reports without revealing identity
+- **Multiple Categories**: Bullying, harassment, mental health, suggestions, and other concerns
+- **School Selection**: Choose your school from a list
+- **No Login Required**: Complete anonymity for reporters
 
-### Staff/Counsellor Interface (Secure Login)
-- Internet Identity authentication
-- View reports only from assigned school
-- Filter reports by category and date range
-- Mark reports as "Reviewed" or "Resolved"
-- Dashboard with report statistics
+### For Staff
+- **School-Scoped Access**: View reports only for assigned school
+- **Report Management**: Update report status (Submitted → Reviewed → Resolved)
+- **Filtering**: Filter reports by category and date range
+- **Statistics Dashboard**: View report counts and status breakdown
 
-### Admin Interface (Full Access)
-- Manage schools (add, edit, remove)
-- Create and manage staff accounts
-- View report statistics across all schools
-- Platform-wide oversight
+### For Admins
+- **School Management**: Create, edit, and delete schools
+- **Staff Management**: Create and manage staff accounts with school assignments
+- **System-Wide Statistics**: View reports across all schools
+- **Access Control**: Manage who can access the platform
 
-## Privacy & Security
-
-- **100% Anonymous Student Reports**: No identity data collected or stored
-- **Blockchain Security**: Built on Internet Computer for maximum security
-- **Role-Based Access Control**: Staff can only access their school's reports
-- **Internet Identity**: Secure authentication without passwords
-
-## Local Development
+## Setup & Deployment
 
 ### Prerequisites
 - Node.js (v18 or higher)
-- dfx (Internet Computer SDK)
-- pnpm
+- DFX (Internet Computer SDK)
+- pnpm package manager
 
-### Setup
+### Installation
 
-1. Install dependencies:
+1. Clone the repository
+2. Install dependencies:

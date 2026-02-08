@@ -1,16 +1,22 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 5,
+  "projectStateVersion": 17,
   "summary": "Inkog: an anonymous school reporting web platform with three role-based interfaces (student submission without login, staff dashboards per school, and owner/admin management) built with HTML/CSS/JS frontend and Firebase (Auth, Firestore, Hosting) backend, emphasizing privacy, dark-mode modern UI, and mobile responsiveness.",
   "architectural_notes": [
     "Tech stack set to vanilla HTML/CSS/JavaScript frontend with Firebase Authentication, Firestore, and Hosting backend.",
     "Role separation: Student (no auth), Staff/Counsellor (email/password auth, school-scoped access), Owner/Admin (full access).",
     "Privacy requirement: do not store any identifying information (name/email/phone) or IP addresses with reports; reports display timestamp only to staff.",
     "Firestore must enforce per-school access controls so staff can only read/update reports for their own school.",
-    "Admin access bootstrapping needed: canister must assign an initial admin principal on init (or allow first caller to become admin if no admin exists) so isCallerAdmin() can pass."
+    "Admin access bootstrapping needed: canister must assign an initial admin principal on init (or allow first caller to become admin if no admin exists) so isCallerAdmin() can pass.",
+    "Admin bootstrapping depends on a backend AccessControl/authorization module; if the module is missing or not wired into the canister, isAdmin(...) will always fail and no one can access the Admin page.",
+    "Decision confirmed: create `backend/authorization/` folder and implement the missing Motoko modules `access-control.mo` and `MixinAuthorization.mo` referenced by `backend/main.mo` so admin checks/authorization can function."
   ],
   "known_issues": [
-    "Admin page access denied because no initial admin principal is assigned in the backend; isCallerAdmin() always fails until an admin is manually added."
+    "Admin page access denied because no initial admin principal is assigned in the backend; isCallerAdmin() always fails until an admin is manually added.",
+    "Admin bootstrapping/authorization logic is missing from the backend (e.g., expected authorization/access-control.mo module not present or not connected), causing all callers to be treated as non-admins and blocking Admin page access.",
+    "Deployment/build did not complete successfully (deployment error encountered); user requested a retry of deployment.",
+    "After the latest attempted deployment/build, the user reports it is still \"not working\" (problem persists; likely admin access still denied and/or deployment/build not actually successful).",
+    "Admin page currently shows immediate \"Access denied\" when user opens it (no loading/spinner)."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -85,6 +91,22 @@
         "REQ-11"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-improve-frontend-error-handling-for-admin-staff-auth-checks-so-that-if-backend-auth-queries-fail-e-g-due-to-a-trap-or-actor-initialization-problem-the-ui-shows-a-clear-english-error-state-with-a-retry-option-rather-than-silently-failing-or-leaving-the-user-blocked-on-a-spinner",
+      "title": "Improve frontend error handling for admin/staff auth checks so that if backend auth queries fail (e.g., due to a trap or actor initialization problem), the UI shows a clear English error state with a retry option rather than silently failing or leaving the user blocked on a spinner.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-setup-deployment-documentation-to-include-a-focused-english-troubleshooting-section-for-the-current-failure-mode-admin-access-not-working-including-how-to-deploy-successfully-how-to-perform-first-admin-bootstrapping-and-how-to-verify-post-deploy-checks-student-can-submit-staff-denied-without-account-admin-bootstraps-on-first-login",
+      "title": "Update the setup/deployment documentation to include a focused English troubleshooting section for the current failure mode (“admin access not working”), including: how to deploy successfully, how to perform first-admin bootstrapping, and how to verify post-deploy checks (student can submit, staff denied without account, admin bootstraps on first login).",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -137,6 +159,206 @@
       "summary": "Implement admin bootstrapping so that the first authenticated caller can access the Admin page when no admin principal exists yet. Specifically: when the canister has zero admins configured, the first Internet Identity principal that triggers the admin check must be automatically granted admin privileges (and any required base user permission), after which all subsequent non-admin callers must continue to be denied admin access unless explicitly granted admin rights.",
       "reqIds": [
         "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Add the missing backend authorization modules referenced by `backend/main.mo` (`authorization/access-control` and `authorization/MixinAuthorization`) so the canister compiles and role checks (admin/user) work end-to-end.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Implement admin bootstrapping in the backend so that when there are zero admins configured, the first authenticated Internet Identity principal that triggers the admin check is automatically granted admin privileges (and any required base permission), after which subsequent non-admin callers remain denied unless explicitly granted admin access.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Ensure the access-control state (including the admin list/roles) persists across canister upgrades so that a previously bootstrapped admin does not lose access after redeploying/upgrading.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Resolve the current deployment failure by fixing the backend compilation/build blockers so `dfx deploy` can complete successfully.",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Implement admin bootstrapping in the Motoko backend so that when there are zero admins configured, the first authenticated Internet Identity principal that triggers an admin check is automatically granted admin privileges (and any required base user permission), and subsequent non-admin callers remain denied unless explicitly granted.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Ensure authorization/admin state and core application data persists across canister upgrades (redeploy/upgrade) using stable storage, and add/adjust `backend/migration.mo` only if required by the existing state upgrade path.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Update the deployment documentation to include clear steps to retry deployment and verify success (build, deploy, and basic post-deploy checks for student submission, staff access denial without staff account, and admin bootstrapping flow). Use English for all user-facing text.",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add the missing Motoko authorization modules that `backend/main.mo` imports (`authorization/access-control.mo` and `authorization/MixinAuthorization.mo`) so the backend can compile and role/permission checks work end-to-end.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Implement correct admin bootstrapping behavior in the authorization layer: when there are zero admins configured, the first authenticated Internet Identity principal that triggers an admin check must be automatically granted admin privileges (and any required base permission), after which subsequent non-admin callers remain denied unless explicitly granted admin rights.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Expose a backend API used by the frontend to check admin status (`isCallerAdmin()`), implemented via the authorization mixin/module, and ensure it is consistent with the bootstrapping and admin list behavior.",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Ensure authorization state (at least: admin list / roles / permissions needed for `isAdmin` and `hasPermission`) persists across canister upgrades so a previously bootstrapped admin does not lose access after redeploying/upgrading.",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Update the deployment/setup documentation to include clear English steps to validate the authorization fix: deploy successfully, perform first-admin bootstrapping login, and verify that the Admin page becomes accessible for the bootstrapped principal.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Create the missing Motoko authorization folder and modules so that `backend/main.mo` can import them successfully: add `backend/authorization/access-control.mo` and `backend/authorization/MixinAuthorization.mo` matching these imports exactly: `import AccessControl \"authorization/access-control\";` and `import MixinAuthorization \"authorization/MixinAuthorization\";`.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Implement the AccessControl API expected by `backend/main.mo` in `backend/authorization/access-control.mo`, including: `initState()`, `isAdmin(state, principal)`, `hasPermission(state, principal, permissionVariant)`, and `assignRole(state, caller, targetPrincipal, roleVariant)` with role/permission variants that at least support `#admin` and `#user` used by `backend/main.mo`.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Implement `backend/authorization/MixinAuthorization.mo` as an includable mixin compatible with `include MixinAuthorization(accessControlState);` in `backend/main.mo`, and ensure it exposes a canister method `public query ({ caller }) func isCallerAdmin() : async Bool` that returns the admin status for the caller based on the shared `accessControlState`.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Unblock backend compilation by adding the missing Motoko authorization modules imported by `backend/main.mo`: create `backend/authorization/access-control.mo` and `backend/authorization/MixinAuthorization.mo` so these imports resolve exactly: `import AccessControl \"authorization/access-control\";` and `import MixinAuthorization \"authorization/MixinAuthorization\";`.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Implement correct admin bootstrapping in the backend authorization layer: when there are zero admins configured, the first authenticated Internet Identity principal who triggers the admin check must be automatically granted admin privileges (and any required base role/permission such as `#user`), and subsequent non-admin callers must continue to be denied admin access unless explicitly granted.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Ensure the backend exposes the canister methods required by the existing frontend auth flow, matching the current frontend calls: implement `public query ({ caller }) func isCallerAdmin() : async Bool` and implement `public shared ({ caller }) func _initializeAccessControlWithSecret(secret : Text) : async ()` (called by `frontend/src/hooks/useActor.ts`). These must be implemented via the authorization mixin/module included by `backend/main.mo` and must be consistent with admin bootstrapping behavior.",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Persist authorization/admin state across canister upgrades so a previously bootstrapped admin does not lose access after redeploying/upgrading. Add/adjust `backend/migration.mo` only if required by the existing state upgrade path and the current project state.",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Unblock backend compilation by creating the missing Motoko authorization modules referenced by `backend/main.mo` so these imports resolve exactly: `import AccessControl \"authorization/access-control\";` and `import MixinAuthorization \"authorization/MixinAuthorization\";`.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Implement the AccessControl API expected by `backend/main.mo` in `backend/authorization/access-control.mo`, including role/permission types and these functions: `initState()`, `isAdmin(state, principal)`, `hasPermission(state, principal, permissionVariant)`, and `assignRole(state, caller, targetPrincipal, roleVariant)`, with roles/permissions supporting at least `#admin` and `#user` as used by `backend/main.mo`.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Implement `backend/authorization/MixinAuthorization.mo` as an includable mixin compatible with `include MixinAuthorization(accessControlState);` in `backend/main.mo`, and ensure it exposes canister methods required by the existing frontend auth flow: `public query ({ caller }) func isCallerAdmin() : async Bool` and `public shared ({ caller }) func _initializeAccessControlWithSecret(secret : Text) : async ()`.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Fix the 'Admin page shows immediate Access Denied' issue by implementing correct admin bootstrapping behavior in the backend authorization layer: when there are zero admins configured, the first authenticated Internet Identity principal that triggers authorization initialization/check must be automatically granted admin privileges (and any required base role such as `#user`), and subsequent non-admin callers must remain denied unless explicitly granted admin rights.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Ensure authorization state persists across canister upgrades so a previously bootstrapped admin does not lose access after redeploying/upgrading, using the existing stable storage pattern in `backend/main.mo` (`stableUserRoles` and `preupgrade`/`postupgrade`). Add or adjust `backend/migration.mo` only if required by the existing state upgrade path.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Validate end-to-end admin gating behavior in the frontend without modifying immutable hook files: after the backend fix, an authenticated bootstrapped admin can access `AdminDashboardPage`, while non-admin authenticated users remain blocked by `AccessDeniedScreen` with the existing English text 'Access Denied'.",
+      "reqIds": [
+        "REQ-38"
       ],
       "status": "pending"
     }
