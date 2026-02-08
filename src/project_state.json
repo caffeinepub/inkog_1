@@ -1,0 +1,148 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 5,
+  "summary": "Inkog: an anonymous school reporting web platform with three role-based interfaces (student submission without login, staff dashboards per school, and owner/admin management) built with HTML/CSS/JS frontend and Firebase (Auth, Firestore, Hosting) backend, emphasizing privacy, dark-mode modern UI, and mobile responsiveness.",
+  "architectural_notes": [
+    "Tech stack set to vanilla HTML/CSS/JavaScript frontend with Firebase Authentication, Firestore, and Hosting backend.",
+    "Role separation: Student (no auth), Staff/Counsellor (email/password auth, school-scoped access), Owner/Admin (full access).",
+    "Privacy requirement: do not store any identifying information (name/email/phone) or IP addresses with reports; reports display timestamp only to staff.",
+    "Firestore must enforce per-school access controls so staff can only read/update reports for their own school.",
+    "Admin access bootstrapping needed: canister must assign an initial admin principal on init (or allow first caller to become admin if no admin exists) so isCallerAdmin() can pass."
+  ],
+  "known_issues": [
+    "Admin page access denied because no initial admin principal is assigned in the backend; isCallerAdmin() always fails until an admin is manually added."
+  ],
+  "isFixRequest": true,
+  "existing_features": [
+    {
+      "id": "feature-implement-a-public-student-interface-that-allows-anyone-to-submit-a-report-without-logging-in-using-a-large-free-text-input-an-optional-category-selector-bullying-harassment-mental-health-suggestion-other-a-submit-button-and-a-post-submit-confirmation-message-exactly-your-report-has-been-submitted-anonymously",
+      "title": "Implement a public Student interface that allows anyone to submit a report without logging in, using a large free-text input, an optional category selector (Bullying, Harassment, Mental Health, Suggestion, Other), a submit button, and a post-submit confirmation message exactly: “Your report has been submitted anonymously”.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enforce-privacy-guarantees-for-student-submissions-do-not-collect-or-store-name-email-phone-number-or-ip-address-and-do-not-log-or-persist-any-network-identifying-metadata-beyond-what-is-required-by-the-internet-computer-platform-runtime-no-app-level-ip-capture",
+      "title": "Enforce privacy guarantees for student submissions: do not collect or store name, email, phone number, or IP address; and do not log or persist any network-identifying metadata beyond what is required by the Internet Computer platform runtime (no app-level IP capture).",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-school-staff-counsellor-interface-with-secure-login-and-authorization-where-staff-can-only-access-reports-for-their-own-school",
+      "title": "Implement a School Staff/Counsellor interface with secure login and authorization, where staff can only access reports for their own school.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-a-staff-dashboard-to-view-submitted-reports-for-that-staff-member-s-school-with-filters-by-category-and-date-range-showing-each-report-with-timestamp-only-no-identity-and-allowing-staff-to-mark-reports-as-reviewed-or-resolved",
+      "title": "Provide a Staff dashboard to view submitted reports for that staff member’s school, with filters by category and date range, showing each report with timestamp only (no identity), and allowing staff to mark reports as “Reviewed” or “Resolved”.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-owner-admin-interface-with-full-administrative-access-to-add-edit-remove-schools-create-staff-counsellor-accounts-for-each-school-view-number-of-reports-per-school-and-manage-platform-settings",
+      "title": "Implement an Owner/Admin interface with full administrative access to: add/edit/remove schools; create staff/counsellor accounts for each school; view number of reports per school; and manage platform settings.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-clear-separation-of-roles-and-navigation-student-anonymous-no-login-staff-authenticated-school-scoped-and-owner-admin-authenticated-global-ensure-routes-pages-are-not-interchangeable-and-are-protected-by-backend-authorization-not-just-frontend-checks",
+      "title": "Implement clear separation of roles and navigation: student (anonymous, no login), staff (authenticated, school-scoped), and owner/admin (authenticated, global). Ensure routes/pages are not interchangeable and are protected by backend authorization (not just frontend checks).",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-clean-modern-mobile-friendly-ui-with-dark-mode-preferred-and-apply-a-coherent-visual-theme-consistently-across-student-staff-and-admin-interfaces-choose-a-distinct-style-appropriate-for-a-privacy-safety-trust-product-avoid-blue-purple-by-default",
+      "title": "Create a clean, modern, mobile-friendly UI with dark mode preferred, and apply a coherent visual theme consistently across student, staff, and admin interfaces. Choose a distinct style appropriate for a privacy/safety/trust product (avoid blue/purple by default).",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-setup-and-deployment-instructions-tailored-to-the-internet-computer-template-motoko-backend-react-typescript-frontend-including-local-development-steps-canister-deployment-steps-and-how-to-initialize-the-first-admin-owner-access-securely",
+      "title": "Provide setup and deployment instructions tailored to the Internet Computer template (Motoko backend + React/TypeScript frontend), including local development steps, canister deployment steps, and how to initialize the first admin/owner access securely.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-setup-deployment-documentation-to-explain-how-the-initial-admin-is-established-under-the-new-bootstrapping-behavior-including-clear-steps-for-first-time-login-to-claim-admin-access-and-what-to-do-if-an-admin-already-exists",
+      "title": "Update the setup/deployment documentation to explain how the initial admin is established under the new bootstrapping behavior, including clear steps for first-time login to claim admin access and what to do if an admin already exists.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Student interface: anonymous report submission (no login) with text box, optional category selector, submit + confirmation message, and privacy guarantee (no personal data stored).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Staff/counsellor interface: secure email+password login, scoped to own school, dashboard listing reports with timestamp only, filters (category/date), and status updates (Reviewed/Resolved).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Owner/admin interface: manage schools (add/edit/remove), create staff accounts per school, view report counts per school, and manage platform settings.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "UI requirements: clean modern design with dark mode preferred and mobile-friendly responsive layout; clear separation of student/staff/admin experiences.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Firebase backend implementation: Auth for staff/admin, Firestore schema for schools/staff/reports/status, and Hosting deployment; include complete working code and setup instructions.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Privacy/safety requirements: ensure student reports are anonymous and do not store identity fields (name/email/phone) or IP addresses; enforce role-based access controls to prevent cross-school access.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Define and implement a backend data model and APIs to support: schools, staff accounts mapped to a school, admin identities, reports (with category, text, timestamp, status), and platform settings. Data must persist across canister upgrades per standard stable-state practices.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Implement admin bootstrapping so that the first authenticated caller can access the Admin page when no admin principal exists yet. Specifically: when the canister has zero admins configured, the first Internet Identity principal that triggers the admin check must be automatically granted admin privileges (and any required base user permission), after which all subsequent non-admin callers must continue to be denied admin access unless explicitly granted admin rights.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Inkog",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

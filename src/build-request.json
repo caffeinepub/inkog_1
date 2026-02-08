@@ -1,0 +1,65 @@
+{
+  "kind": "build_request",
+  "title": "Fix admin access by bootstrapping the first admin principal",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-10",
+      "text": "Implement admin bootstrapping so that the first authenticated caller can access the Admin page when no admin principal exists yet. Specifically: when the canister has zero admins configured, the first Internet Identity principal that triggers the admin check must be automatically granted admin privileges (and any required base user permission), after which all subsequent non-admin callers must continue to be denied admin access unless explicitly granted admin rights.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-5",
+          "msg-8"
+        ],
+        "quotes": [
+          "why is it not giving me access to admin page",
+          "the first caller automatically becomes the admin if no admin exists yet",
+          "yess"
+        ]
+      },
+      "acceptanceCriteria": [
+        "On a fresh deployment with no pre-configured admins, logging in with Internet Identity and navigating to the admin route results in access to the admin dashboard (no Access Denied screen).",
+        "After the first admin is established, a different Internet Identity principal that has not been granted admin privileges is denied access to the admin page (Access Denied screen remains correct).",
+        "The bootstrapping only occurs when there are no admins; it must not reassign/override admin privileges once at least one admin exists.",
+        "The change does not weaken existing backend authorization checks for staff-scoped data access or anonymous student submission."
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Update the setup/deployment documentation to explain how the initial admin is established under the new bootstrapping behavior, including clear steps for first-time login to claim admin access and what to do if an admin already exists.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4",
+          "msg-5",
+          "msg-8"
+        ],
+        "quotes": [
+          "the first caller automatically becomes the admin if no admin exists yet",
+          "yess"
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/README.md includes a section describing initial admin bootstrapping and the expected first-login flow.",
+        "Documentation clarifies that only the first authenticated principal becomes admin on a fresh canister and that additional admins must be granted through the admin functionality afterward (no implication that every user can become admin)."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single-actor Motoko canister with all logic in backend/main.mo (do not introduce additional backend services).",
+    "Only create backend/migration.mo if required by an actual stable-state change; follow the project migration policy (conditional).",
+    "Do not edit files in frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
+    "All user-facing text added/changed must be in English."
+  ],
+  "nonGoals": [
+    "Adding new authentication providers or third-party auth (only Internet Identity).",
+    "Changing role definitions or broadening admin permissions beyond the initial-admin bootstrap.",
+    "Implementing any new admin UI features unrelated to establishing initial admin access."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
